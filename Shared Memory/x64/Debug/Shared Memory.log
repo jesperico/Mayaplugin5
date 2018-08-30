@@ -1,1 +1,3 @@
-﻿  Shared Memory.vcxproj -> F:\skolan\Shared Memory\Level Editor Project5\GitHub\Mayaplugin\Mayaplugin\Build/Shared_Memory.lib
+﻿  CircBuffer.cpp
+f:\skolan\shared memory\level editor project5\github\mayaplugin5\shared memory\circbuffer.cpp(18): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
+  Shared Memory.vcxproj -> F:\skolan\Shared Memory\Level Editor Project5\GitHub\Mayaplugin5\Build/Shared_Memory.lib
