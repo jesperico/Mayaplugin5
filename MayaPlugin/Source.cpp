@@ -132,9 +132,8 @@ void nodeNameChangeFn(MObject &obj, const MString &str, void *clientData)
 void attributeChangedFn(MNodeMessage::AttributeMessage attrMsg, MPlug &plug, MPlug &otherPlug, void *clientData)
 {
 	MStatus res;
-	MGlobal::displayInfo(MString(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"));
 
-	if (attrMsg & MNodeMessage::AttributeMessage::kAttributeSet && !plug.isArray() && plug.isElement())
+	if(attrMsg & MNodeMessage::AttributeMessage::kAttributeSet && !plug.isArray() && plug.isElement())
 	{
 		MGlobal::displayInfo(MString("Attribute Changed: " + plug.name()));
 		MGlobal::displayInfo(MString("plug.node(): " + plug.node().apiType()));
@@ -666,6 +665,11 @@ void OnNodeAddFn(MObject &node, void *clientData)
 	if (node.hasFn(MFn::kMesh))
 	{
 		meshFn(node);
+		MStatus result = MS::kSuccess;
+		MCallbackId tempCallbackId;
+
+		tempCallbackId = MNodeMessage::addAttributeChangedCallback(node, attributeChangedFn, NULL, &result);
+		callbackkCheckFn("addAttributeChangedCallback", &tempCallbackId, &result);
 	}
 	if (node.hasFn(MFn::kCamera))
 	{
@@ -700,6 +704,10 @@ void OnNodeRemoveFn(MObject &node, void *clientData)
 	}
 
 }
+void bengan()
+{
+
+}
 
 void callbacksFn()
 {
@@ -718,8 +726,7 @@ void callbacksFn()
 	//tempCallbackId = MNodeMessage::addNameChangedCallback(MObject::kNullObj, nodeNameChangeFn, NULL, &result);
 	//callbackkCheckFn("addNameChangedCallback", &tempCallbackId, &result);
 
-	tempCallbackId = MNodeMessage::addAttributeChangedCallback(MObject::kNullObj, attributeChangedFn, NULL, &result);
-	callbackkCheckFn("addAttributeChangedCallback", &tempCallbackId, &result);
+
 
 	tempCallbackId = MNodeMessage::addNodeDirtyCallback(MObject::kNullObj, nodeDirtyFn, NULL, &result);
 	callbackkCheckFn("addNodeDirtyCallback", &tempCallbackId, &result);
