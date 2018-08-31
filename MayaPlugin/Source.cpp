@@ -133,7 +133,7 @@ void attributeChangedFn(MNodeMessage::AttributeMessage attrMsg, MPlug &plug, MPl
 {
 	MStatus res;
 
-	if(attrMsg & MNodeMessage::AttributeMessage::kAttributeSet && !plug.isArray() && plug.isElement())
+	if (attrMsg & MNodeMessage::AttributeMessage::kAttributeSet && !plug.isArray() && plug.isElement())
 	{
 		MGlobal::displayInfo(MString("Attribute Changed: " + plug.name()));
 		MGlobal::displayInfo(MString("plug.node(): " + plug.node().apiType()));
@@ -143,17 +143,6 @@ void attributeChangedFn(MNodeMessage::AttributeMessage attrMsg, MPlug &plug, MPl
 
 		nodeDeleteFn(plug.node(), true);
 	}
-
-	//if (MNodeMessage::AttributeMessage::kAttributeSet && plug.node().hasFn(MFn::kCamera))
-	//{
-	//	//MFnDagNode kCam(plug.node());
-	//	//MObject kTrans = kCam.parent(0);
-
-	//	//MGlobal::displayInfo(MString("plug node:") + plug.node().apiTypeStr());
-	//	//MGlobal::displayInfo(MString("parentObj node:") + kTrans.apiTypeStr());
-	//	//transformPackageFn(kTrans);
-	//	//transformProducer();
-	//}
 }
 
 void nodeDirtyFn(MObject &obj, void *clientData)
@@ -207,12 +196,12 @@ void nodeDeleteFn(MObject &node, bool meshMsg)
 		mMainHeader.remove += 1;
 		//if(meshMsg)
 		//mMainHeader.mesh += 1;
-			
+
 		mainList.push(mMainHeader);
 
 		removeProducer();
 		if (meshMsg)
-		meshFn(node);
+			meshFn(node);
 	}
 }
 
@@ -231,7 +220,7 @@ void addChildNameToTransParentFn(MObject &obj)
 				MFnTransform parentTrans(parentObj);
 				string parentName = parentTrans.name().asChar();
 				MString parentDisName = parentName.c_str();
-				
+
 				if (transformList.size() != 0)
 				{
 					strcpy(transformList.front().name, parentTrans.name().asChar());
@@ -251,7 +240,7 @@ void registerTransformFn(MObject &obj)
 		MFnTransform transform(obj);
 
 		transformPackageFn(obj);
-		
+
 		MDagPath path = MDagPath::getAPathTo(transform.child(0));
 
 
@@ -278,8 +267,21 @@ void registerTransformFn(MObject &obj)
 
 void updateCameraFn(const MString &modelPanel, void* clientData)
 {
-	MString panelName = MGlobal::executeCommandStringResult("getPanel -wf");
-	if (strcmp(panelName.asChar(), modelPanel.asChar()) == 0)
+	MString currentPanel = MGlobal::executeCommandStringResult("getPanel -wf");
+	//MGlobal::displayInfo(MString("currentPanel: ") + currentPanel.asChar());
+	//MGlobal::displayInfo(MString("modelPanel: ") + modelPanel.asChar());
+
+	static bool perspFirstTime = true;
+	static bool topFirstTime = true;
+	static bool frontFirstTime = true;
+	static bool leftFirstTime = true;
+
+	// 1 top
+	// 2 front
+	// 3 left
+	// 4 persp
+
+	if (!strcmp(currentPanel.asChar(), modelPanel.asChar()))
 	{
 		M3dView activeView = M3dView::active3dView();
 		MStatus result;
@@ -290,23 +292,124 @@ void updateCameraFn(const MString &modelPanel, void* clientData)
 		if (activeView.getCamera(cameraPath))
 		{
 			MFnCamera camFn(cameraPath.node(), &result);
-			MMatrix newMat = camFn.transformationMatrix();
 
-			if (memcmp(&newMat, &oldMat, sizeof(MMatrix)) != 0 )// tar bort hover msgs
+			if (!strcmp(modelPanel.asChar(), "modelPanel4"))
 			{
-				oldMat = newMat;
-				transformPackageFn(camFn.parent(0));
-				transformProducer();
+				if (perspFirstTime)
+				{
+					MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+					MGlobal::displayInfo("First Time");
+					MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+					perspFirstTime = false;
+
+					MGlobal::displayInfo(MString("camFn.name(): ") + camFn.name().asChar());
+
+					sCamera sCam;
+
+					strcpy(sCam.name, camFn.name().asChar());
+					memcpy(sCam.projMatrix, &camFn.projectionMatrix(), sizeof(MFloatMatrix));
+
+					registerTransformFn(camFn.parent(0)); // kTransform
+					addChildNameToTransParentFn(cameraPath.node());// kCamera
+					transformProducer();
+
+					sMainHeader mMainHeader;
+					mMainHeader.camera += 1;
+					mainList.push(mMainHeader);
+					cameraList.push(sCam);
+					cameraProducer();
+				}
 			}
+			else
+			{
+				if (!strcmp(modelPanel.asChar(), "modelPanel1"))
+				{
+					if (topFirstTime)
+					{
+						MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+						MGlobal::displayInfo("First Time");
+						MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+						topFirstTime = false;
+
+						MGlobal::displayInfo(MString("camFn.name(): ") + camFn.name().asChar());
+
+						sCamera sCam;
+
+						strcpy(sCam.name, camFn.name().asChar());
+						memcpy(sCam.projMatrix, &camFn.projectionMatrix(), sizeof(MFloatMatrix));
+
+						registerTransformFn(camFn.parent(0)); // kTransform
+						addChildNameToTransParentFn(cameraPath.node());// kCamera
+						transformProducer();
+
+						sMainHeader mMainHeader;
+						mMainHeader.camera += 1;
+						mainList.push(mMainHeader);
+						cameraList.push(sCam);
+						cameraProducer();
+					}
+				}
+				if (!strcmp(modelPanel.asChar(), "modelPanel2"))
+				{
+					if (frontFirstTime)
+					{
+						MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+						MGlobal::displayInfo("First Time");
+						MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+					frontFirstTime = false;
+
+					MGlobal::displayInfo(MString("camFn.name(): ") + camFn.name().asChar());
+
+					//MFnCamera camFn(cameraPath.node(), &res);
+					//if (res == MStatus::kSuccess)
+					//{
+					//	memcpy(sCam.projMatrix, &camFn.projectionMatrix(), sizeof(MFloatMatrix));
+					//	strcpy(sCam.name, camFn.name().asChar());
+
+					//registerTransformFn(camFn.parent(0)); // kTransform
+					//addChildNameToTransParentFn(cameraPath.node());// kCamera
+					//transformProducer();
+					}
+				}
+				if (!strcmp(modelPanel.asChar(), "modelPanel3"))
+				{
+					if (leftFirstTime)
+					{
+						MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+						MGlobal::displayInfo("First Time");
+						MGlobal::displayInfo("中中中中中中中中中中中中中中中中中中中中中");
+						leftFirstTime = false;
+
+						MGlobal::displayInfo(MString("camFn.name(): ") + camFn.name().asChar());
+
+						//MFnCamera camFn(cameraPath.node(), &res);
+						//if (res == MStatus::kSuccess)
+						//{
+						//	memcpy(sCam.projMatrix, &camFn.projectionMatrix(), sizeof(MFloatMatrix));
+						//	strcpy(sCam.name, camFn.name().asChar());
+
+						//registerTransformFn(camFn.parent(0)); // kTransform
+						//addChildNameToTransParentFn(cameraPath.node());// kCamera
+						//transformProducer();
+					}
+				}
+			}
+
+				//MGlobal::displayInfo(MString("2nd, camFn.name(): ") + camFn.name().asChar());
+
+				MMatrix newMat = camFn.transformationMatrix();
+
+				if (newMat.isEquivalent(oldMat)) // tar bort hover msgs
+				{
+					//MGlobal::displayInfo("Ronaldo ");
+					oldMat = newMat;
+					transformPackageFn(camFn.parent(0));
+					transformProducer();
+				}
+				{
+					//MGlobal::displayInfo("zlaaaatan ");
+				}
 		}
-	}
-	else
-	{
-		// transformList.erase(transformList.begin());
-		// delete the transform, earlier used.
-		// register the new one:
-		// trans.name;
-		// trans.childName;
 	}
 }
 
@@ -440,7 +543,7 @@ void getMaterialFn(MObject shadingEngine, sMaterialHeader &sMat)
 			}
 		}
 		else
-		sMat.specularColor[0] = 0;
+			sMat.specularColor[0] = 0;
 		sMat.specularColor[1] = 0;
 		sMat.specularColor[2] = 0;
 
@@ -614,9 +717,9 @@ void cameraFn()
 
 			if (camFn.parent(0).hasFn(MFn::kTransform))
 			{
-				//MGlobal::displayInfo("cameraPath: " + MString(cameraPath.node().apiTypeStr()));
+				//MGlobal::displayInfo("cameraPath.node: " + MString(cameraPath.node().apiTypeStr()));
 				// kCamera
-				//MGlobal::displayInfo("camFn: " + MString(camFn.parent(0).apiTypeStr()));
+				//MGlobal::displayInfo("camFn.parent: " + MString(camFn.parent(0).apiTypeStr()));
 				// kTransform
 
 				//MFnTransform t(camFn.parent(0));
@@ -634,8 +737,8 @@ void cameraFn()
 				// OnNodeAddedFn() registers 1 tranform and 1 camera.
 				// Solution, in OnNodeAddedFn() (transform.child == camera) skip
 				// Detta kanske tar bort transformen med en konstig parent. Fuck, det var kameran som hade en konstig parent... Till camera1 elr n廞.
-				registerTransformFn(camFn.parent(0));
-				addChildNameToTransParentFn(cameraPath.node());
+				registerTransformFn(camFn.parent(0)); // kTransform
+				addChildNameToTransParentFn(cameraPath.node());// kCamera
 				transformProducer();
 			}
 
@@ -736,16 +839,16 @@ void callbacksFn()
 	MString activeCameraPanelName;
 	activeCameraPanelName = MGlobal::executeCommandStringResult("getPanel -wf");
 
-	//tempCallbackId = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel1"), updateCameraFn, NULL, &result);
-	//callbackkCheckFn("modelPanel1", &tempCallbackId, &result);
+	tempCallbackId = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel1"), updateCameraFn, NULL, &result); // 1 Top
+	callbackkCheckFn("modelPanel1", &tempCallbackId, &result);
 
-	//MCallbackId viewId2 = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel2"), updateCameraFn, NULL, &result);
-	//callbackkCheckFn("modelPanel2", &tempCallbackId, &result);
+	tempCallbackId = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel2"), updateCameraFn, NULL, &result); // 2 Front
+	callbackkCheckFn("modelPanel2", &tempCallbackId, &result);
 
-	//MCallbackId viewId3 = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel3"), updateCameraFn, NULL, &result);
-	//callbackkCheckFn("modelPanel3", &tempCallbackId, &result);
+	tempCallbackId = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel3"), updateCameraFn, NULL, &result); // 3 Left
+	callbackkCheckFn("modelPanel3", &tempCallbackId, &result);
 
-	tempCallbackId = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel4"), updateCameraFn, NULL, &result);
+	tempCallbackId = MUiMessage::add3dViewPreRenderMsgCallback(MString("modelPanel4"), updateCameraFn, NULL, &result); // 4 Perp
 	callbackkCheckFn("modelPanel4", &tempCallbackId, &result);
 }
 
@@ -760,7 +863,7 @@ EXPORT MStatus initializePlugin(MObject obj)
 	}
 
 	callbacksFn();
-	cameraFn();
+	//cameraFn();
 	MGlobal::displayInfo("<<			Maya plugin loaded!			>>");
 	MGlobal::displayInfo("||			                 			||");
 
@@ -785,7 +888,7 @@ void mainHeaderPrinter()
 	MGlobal::displayInfo(MString("|||||||||||||||||||||||||||| Msg Preview: ") + counter + MString(" ||||||||||||||||||||||||||||"));
 	MGlobal::displayInfo(MString("<Main Header>"));
 	MGlobal::displayInfo(MString("{"));
-	MGlobal::displayInfo(MString("Transforms: ") + mainList.front().transform + "size: " + transformList.size());
+	MGlobal::displayInfo(MString("Transforms: ") + mainList.front().transform + " size: " + transformList.size());
 	MGlobal::displayInfo(MString("Meshes: ") + mainList.front().mesh);
 	MGlobal::displayInfo(MString("Remove: ") + mainList.front().remove);
 	MGlobal::displayInfo(MString("Material: ") + mainList.front().material);
@@ -826,6 +929,7 @@ void cameraHeaderPrinter()
 	MGlobal::displayInfo(MString("<Camera Header>"));
 	MGlobal::displayInfo(MString("{"));
 	MGlobal::displayInfo(MString("Camera: " + name));
+	MGlobal::displayInfo(MString("Proj Matrix: Not yet"));
 	MGlobal::displayInfo(MString("}"));
 }
 
@@ -836,7 +940,7 @@ void materialHeaderPrinter()
 	MGlobal::displayInfo(MString("{"));
 	MGlobal::displayInfo(MString("Material: " + name));
 
-	if(strcmp(materialList.front().filepath, "None") == 0)
+	if (strcmp(materialList.front().filepath, "None") == 0)
 	{
 		MGlobal::displayInfo(MString("diffuseColor R: ") + materialList.front().diffuseColor[0]);
 		MGlobal::displayInfo(MString("diffuseColor G: ") + materialList.front().diffuseColor[1]);
